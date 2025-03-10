@@ -23,7 +23,7 @@ group_cols = train["efs"].astype(str) + '_' + train["race_group"].astype(str)
 1. The more features I added, the higher the LB score. When I removed some added features, the CV score sometimes increased, but the LB score drastically decreased.
 2. Stacking more models improved the LB score. Initially, I used a single XGB model, achieving a 0.677 CV score and 0.678 LB score. This increased to 0.683 LB when I combined three models (XGB, LGB, CatBoost).
 3. CV scores were highly sensitive to hyperparameter tuning, and adding weights to models increased the LB score (_though this may lead to overfitting_).
-4. My final model was a weighted stacked ensemble with a regressor (Elastic Net).
+4. My final model was a weighted stacked ensemble (3 models with Nelsol Aalen) with a regressor (Lasso regressor).
 
 ### The Competitors and Their Approaches
 1. Many great notebooks include: [Top 2](https://www.kaggle.com/code/karakasatarik/2nd-place-solution-inference), [Top 4](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions/discussion/566528), [Top 5](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions/discussion/566541), [Top 6](https://www.kaggle.com/code/myprofileurl/6th-place-two-step-model), and the [winner’s discussion](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions/discussion/566550).
