@@ -57,3 +57,9 @@ You can modify the following parameters in the script:
 - `VECTOR_DB_PATH`: Location to save the vector database
 - `MODEL_ID`: Hugging Face model ID for the LLM
 - `EMBEDDING_MODEL`: Model used for text embeddings
+
+## Next Steps:
+- Test with larger, more complex documents and PDFs
+- Fine-tune the chunking strategy for different document types
+- **Implement Agentic RAG**
+
