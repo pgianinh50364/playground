@@ -32,11 +32,6 @@ cd vietnamese-pdf-qa
 pip install -r requirements.txt
 ```
 
-3. Install system dependencies:
-```bash
-apt-get update && apt-get install -y poppler-utils tesseract-ocr
-```
-
 ## Usage
 
 1. Add your PDF file to the project directory
@@ -45,7 +40,7 @@ apt-get update && apt-get install -y poppler-utils tesseract-ocr
 
 3. Run the script:
 ```bash
-python pdf-qa-system.py
+python app.py
 ```
 
 4. The script will:
