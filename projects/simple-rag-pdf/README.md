@@ -23,8 +23,8 @@ This project implements a Question-Answering system for Vietnamese PDF documents
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/vietnamese-pdf-qa.git
-cd vietnamese-pdf-qa
+git clone https://github.com/pgianinh50364/playground.git
+cd simple-rag-pdf
 ```
 
 2. Install required packages:
