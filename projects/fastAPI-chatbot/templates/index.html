@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLama Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+</head>
+<body>
+    <h1>HuggingFace-Powered Chatbot</h1>
+    
+    <div class="container">
+        <div class="api-key-form">
+            <h3>API Key Configuration</h3>
+            <p>Enter your HF API key to enable AI responses:</p>
+            <input type="password" id="apiKeyInput" placeholder="Enter your HF API key" />
+            <button id="saveApiKey" class="btn-save">Save API Key</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="connection-status">
+            Status: <span id="connectionStatus">Connecting...</span>
+            <span id="statusIndicator" class="status-indicator"></span>
+        </div>
+        
+        <div id="messages"></div>
+        <div id="typingIndicator" class="typing-indicator">AI is thinking...</div>
+        
+        <form id="messageForm">
+            <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off"/>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+    
+    <footer>
+        &copy; HF Chatbot - Built with FastAPI and WebSockets
+    </footer>
+    
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const messageForm = document.getElementById('messageForm');
+        const messageInput = document.getElementById('messageInput');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const saveApiKeyButton = document.getElementById('saveApiKey');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const statusIndicator = document.getElementById('statusIndicator');
+        
+        let ws;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        
+        // Load API key from localStorage if available
+        let apiKey = localStorage.getItem('hf_api_key') || '';
+        if (apiKey) {
+            apiKeyInput.value = apiKey;
+        }
+        
+        // Initialize WebSocket connection
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/chat`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                addSystemMessage('Connected to the chatbot server');
+                connectionStatus.textContent = 'Connected';
+                statusIndicator.className = 'status-indicator status-connected';
+                reconnectAttempts = 0;
+                
+                // If we have an API key saved, send it immediately
+                if (apiKey) {
+                    sendApiKey(apiKey);
+                }
+            };
+            
+            ws.onmessage = function(event) {
+                typingIndicator.style.display = 'none';
+                addMessage(event.data, 'bot');
+            };
+            
+            ws.onclose = function() {
+                connectionStatus.textContent = 'Disconnected';
+                statusIndicator.className = 'status-indicator status-disconnected';
+                addSystemMessage('Connection closed. Attempting to reconnect...');
+                
+                // Try to reconnect with exponential backoff
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    const delay = Math.min(1000 * (2 ** reconnectAttempts), 30000);
+                    reconnectAttempts++;
+                    setTimeout(connectWebSocket, delay);
+                } else {
+                    addSystemMessage('Failed to reconnect. Please refresh the page.');
+                }
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                addSystemMessage('Error connecting to server. Please check your connection.');
+            };
+        }
+        
+        // Save API key
+        saveApiKeyButton.addEventListener('click', function() {
+            const newApiKey = apiKeyInput.value.trim();
+            if (newApiKey) {
+                apiKey = newApiKey;
+                localStorage.setItem('hf_api_key', apiKey);
+                
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    sendApiKey(apiKey);
+                    addSystemMessage('API key saved!');
+                } else {
+                    addSystemMessage('Not connected to server. API key will be sent when connection is established.');
+                }
+            } else {
+                addSystemMessage('Please enter a valid API key');
+            }
+        });
+        
+        // Send message
+        messageForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const message = messageInput.value.trim();
+            
+            if (message && ws && ws.readyState === WebSocket.OPEN) {
+                sendMessage(message);
+                addMessage(message, 'user');
+                messageInput.value = '';
+                
+                // Show typing indicator
+                typingIndicator.style.display = 'block';
+            } else if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addSystemMessage('Not connected to server. Please wait for connection to be established.');
+            }
+        });
+        
+        // Send API key to server
+        function sendApiKey(key) {
+            const data = {
+                type: 'api_key',
+                content: key
+            };
+            ws.send(JSON.stringify(data));
+        }
+        
+        // Send chat message to server
+        function sendMessage(message) {
+            const data = {
+                type: 'message',
+                content: message
+            };
+            ws.send(JSON.stringify(data));
+        }
+        
+        // Add message to chat
+        function addMessage(message, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(sender + '-message');
+            messageElement.textContent = message;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // Add system message
+        function addSystemMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('system-message');
+            messageElement.textContent = message;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // Initialize connection
+        connectWebSocket();
+    </script>
+</body>
+</html>

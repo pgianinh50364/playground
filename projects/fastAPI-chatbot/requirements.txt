@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+pydantic
+openai
+websocket
+python_dotenv
+jinja2
